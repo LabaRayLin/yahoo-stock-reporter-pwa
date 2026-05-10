@@ -755,7 +755,9 @@ body {
   }
 
   .stock-list-panel {
-    display: none;
+    display: flex;
+    max-height: 240px;
+    overflow-y: auto;
   }
 
   #report-text {
@@ -767,7 +769,8 @@ body {
     padding: 0 14px;
   }
 
-  .btn.secondary {
+  /* 只隱藏頁尾的「複製報表」按鈕，保留側欄的「儲存」按鈕 */
+  #copy-btn {
     display: none;
   }
 }
