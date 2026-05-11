@@ -481,6 +481,38 @@ document.addEventListener('DOMContentLoaded', () => {
     showStatus(document.getElementById('save-status'), '✅ 已儲存', 2500);
   });
 
+  // --- Field Utils (Clear & Paste) ---
+  const setupUtilButtons = (textareaId, clearId, pasteId, storageKey) => {
+    const ta = document.getElementById(textareaId);
+    const clearBtn = document.getElementById(clearId);
+    const pasteBtn = document.getElementById(pasteId);
+
+    clearBtn.addEventListener('click', () => {
+      if (ta.value && confirm('確定要清空嗎？')) {
+        ta.value = '';
+        localStorage.setItem(storageKey, '');
+        showStatus(document.getElementById('save-status'), '🗑️ 已清空', 1500);
+      }
+    });
+
+    pasteBtn.addEventListener('click', async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (text) {
+          ta.value = text;
+          localStorage.setItem(storageKey, text);
+          showStatus(document.getElementById('save-status'), '📋 已貼上並暫存', 1500);
+        }
+      } catch (err) {
+        console.error('貼上失敗:', err);
+        alert('無法讀取剪貼簿，請檢查權限。');
+      }
+    });
+  };
+
+  setupUtilButtons('inventoryInput', 'clear-inventory', 'paste-inventory', KEY_INVENTORY);
+  setupUtilButtons('engineMemoInput', 'clear-memo', 'paste-memo', KEY_ENGINE_MEMO);
+
   // Manual update
   document.getElementById('manual-update-btn').addEventListener('click', () => updateAllStocks());
 
@@ -526,6 +558,64 @@ document.addEventListener('DOMContentLoaded', () => {
     const prompt = `請根據以下提供的資訊，協助我進行投資分析與策略決策：\n\n## 1. 庫存現況\n${inventory}\n\n## 2. 系統最新市場數據（自動擷取 · ${now}）\n${report || '目前無數據，請先執行更新'}\n\n---\n## 3. 引擎二專用備忘錄\n${memo}`;
     copyToClipboard(prompt, document.getElementById('copy-status'), '📋 已複製完整 Prompt！');
   });
+
+  // ── Mobile Tab Switching ─────────────────────────────────────
+  const tabStocks = document.getElementById('tab-stocks');
+  const tabNotes  = document.getElementById('tab-notes');
+  const tabReport = document.getElementById('tab-report');
+  const sidebar   = document.querySelector('.sidebar');
+  const mainContent = document.querySelector('.main-content');
+
+  function isMobile() {
+    return window.innerWidth <= 680;
+  }
+
+  function setActiveTab(tab) {
+    [tabStocks, tabNotes, tabReport].forEach(t => {
+      t.classList.remove('active');
+      t.setAttribute('aria-selected', 'false');
+    });
+    tab.classList.add('active');
+    tab.setAttribute('aria-selected', 'true');
+
+    if (!isMobile()) return;
+
+    // Show/hide sidebar and main content
+    if (tab === tabReport) {
+      sidebar.classList.add('tab-hidden');
+      mainContent.style.display = '';
+    } else {
+      sidebar.classList.remove('tab-hidden');
+      mainContent.style.display = 'none';
+    }
+
+    // Show/hide which sidebar section
+    if (tab === tabStocks) {
+      sidebar.classList.add('stocks-active');
+      sidebar.classList.remove('notes-active');
+    } else if (tab === tabNotes) {
+      sidebar.classList.add('notes-active');
+      sidebar.classList.remove('stocks-active');
+    }
+  }
+
+  if (tabStocks) {
+    tabStocks.addEventListener('click', () => setActiveTab(tabStocks));
+    tabNotes.addEventListener('click',  () => setActiveTab(tabNotes));
+    tabReport.addEventListener('click', () => setActiveTab(tabReport));
+
+    // Initialize mobile state
+    if (isMobile()) setActiveTab(tabStocks);
+
+    // Reset on resize (e.g. rotate phone)
+    window.addEventListener('resize', () => {
+      if (!isMobile()) {
+        // Restore desktop layout
+        sidebar.classList.remove('tab-hidden', 'stocks-active', 'notes-active');
+        mainContent.style.display = '';
+      }
+    });
+  }
 
   // Service Worker
   if ('serviceWorker' in navigator) {

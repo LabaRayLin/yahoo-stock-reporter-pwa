@@ -1,4 +1,4 @@
-const CACHE_NAME = 'yahoo-stock-reporter-pwa-v1';
+const CACHE_NAME = 'yahoo-stock-reporter-pwa-v3';
 const STATIC_ASSETS = [
   './index.html',
   './app.css',
