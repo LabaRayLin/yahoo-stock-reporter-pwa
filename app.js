@@ -527,6 +527,64 @@ document.addEventListener('DOMContentLoaded', () => {
     copyToClipboard(prompt, document.getElementById('copy-status'), '📋 已複製完整 Prompt！');
   });
 
+  // ── Mobile Tab Switching ─────────────────────────────────────
+  const tabStocks = document.getElementById('tab-stocks');
+  const tabNotes  = document.getElementById('tab-notes');
+  const tabReport = document.getElementById('tab-report');
+  const sidebar   = document.querySelector('.sidebar');
+  const mainContent = document.querySelector('.main-content');
+
+  function isMobile() {
+    return window.innerWidth <= 680;
+  }
+
+  function setActiveTab(tab) {
+    [tabStocks, tabNotes, tabReport].forEach(t => {
+      t.classList.remove('active');
+      t.setAttribute('aria-selected', 'false');
+    });
+    tab.classList.add('active');
+    tab.setAttribute('aria-selected', 'true');
+
+    if (!isMobile()) return;
+
+    // Show/hide sidebar and main content
+    if (tab === tabReport) {
+      sidebar.classList.add('tab-hidden');
+      mainContent.style.display = '';
+    } else {
+      sidebar.classList.remove('tab-hidden');
+      mainContent.style.display = 'none';
+    }
+
+    // Show/hide which sidebar section
+    if (tab === tabStocks) {
+      sidebar.classList.add('stocks-active');
+      sidebar.classList.remove('notes-active');
+    } else if (tab === tabNotes) {
+      sidebar.classList.add('notes-active');
+      sidebar.classList.remove('stocks-active');
+    }
+  }
+
+  if (tabStocks) {
+    tabStocks.addEventListener('click', () => setActiveTab(tabStocks));
+    tabNotes.addEventListener('click',  () => setActiveTab(tabNotes));
+    tabReport.addEventListener('click', () => setActiveTab(tabReport));
+
+    // Initialize mobile state
+    if (isMobile()) setActiveTab(tabStocks);
+
+    // Reset on resize (e.g. rotate phone)
+    window.addEventListener('resize', () => {
+      if (!isMobile()) {
+        // Restore desktop layout
+        sidebar.classList.remove('tab-hidden', 'stocks-active', 'notes-active');
+        mainContent.style.display = '';
+      }
+    });
+  }
+
   // Service Worker
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW reg failed:', err));
