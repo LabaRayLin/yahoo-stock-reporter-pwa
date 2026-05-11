@@ -707,7 +707,6 @@ body {
   opacity: 1;
 }
 
-/* ── Mobile Responsive ───────────────────────────────────────────── */
 /* ── Spin Animation ──────────────────────────────────────────────── */
 @keyframes spin {
   to { transform: rotate(360deg); }
@@ -717,19 +716,29 @@ body {
   animation: spin 0.8s linear infinite;
 }
 
+/* ── Mobile Tab Bar ──────────────────────────────────────────────── */
+.mobile-tabs {
+  display: none; /* hidden on desktop */
+}
+
+/* ── Mobile Responsive ───────────────────────────────────────────── */
 @media (max-width: 680px) {
   :root {
-    --header-h: 56px;
+    --header-h: 52px;
     --footer-h: 52px;
     --sidebar-w: 100%;
+    --tab-h: 44px;
   }
 
+  /* --- Header --- */
   .header {
     padding: 0 14px;
     gap: 10px;
   }
 
-  .brand-sub {
+  .brand-sub,
+  .last-updated,
+  .auto-toggle {
     display: none;
   }
 
@@ -737,27 +746,95 @@ body {
     font-size: 14px;
   }
 
-  .last-updated {
-    display: none;
-  }
-
+  /* --- Body layout: column stack --- */
   .body-layout {
     flex-direction: column;
   }
 
+  /* --- Mobile Tab Bar --- */
+  .mobile-tabs {
+    display: flex;
+    flex-shrink: 0;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    height: var(--tab-h);
+    z-index: 5;
+  }
+
+  .mobile-tab-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-3);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    padding: 0 8px;
+    white-space: nowrap;
+  }
+
+  .mobile-tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    background: rgba(59, 130, 246, 0.06);
+  }
+
+  /* --- Sidebar: acts as a tab panel --- */
   .sidebar {
     width: 100%;
     border-right: none;
-    border-bottom: 1px solid var(--border);
+    border-bottom: none;
     flex-shrink: 0;
-    max-height: 50dvh;
+    /* Fill the space between tabs and footer, minus main content */
+    height: calc(100dvh - var(--header-h) - var(--tab-h) - var(--footer-h));
+    max-height: calc(100dvh - var(--header-h) - var(--tab-h) - var(--footer-h));
+    overflow-y: auto;
+    /* default hidden; JS will toggle via .tab-hidden */
+  }
+
+  .sidebar.tab-hidden {
+    display: none;
+  }
+
+  /* --- Each section in sidebar fills available space --- */
+  .notes-section {
+    border-bottom: none;
+  }
+
+  /* When stock panel is active tab, give it proper height */
+  .sidebar.stocks-active .notes-section {
+    display: none;
+  }
+
+  .sidebar.notes-active .stock-list-panel {
+    display: none;
+  }
+
+  /* Stock list panel should fill sidebar height when active */
+  .stock-list-panel {
+    flex: 1;
+    max-height: none;
+    min-height: 0;
+  }
+
+  /* stock-list (ul) can scroll freely within the sidebar */
+  .stock-list {
+    /* sidebar height minus: stock-list-header(~28px) + add-row(~46px) + add-status(~20px) + padding */
+    max-height: calc(100dvh - var(--header-h) - var(--tab-h) - var(--footer-h) - 110px);
     overflow-y: auto;
   }
 
-  .stock-list-panel {
-    display: flex;
-    max-height: 240px;
-    overflow-y: auto;
+  /* --- Main content gets remaining space --- */
+  .main-content {
+    flex: 1;
+    min-height: 0;
   }
 
   #report-text {
@@ -765,11 +842,11 @@ body {
     padding: 14px 16px;
   }
 
+  /* --- Footer --- */
   .footer {
     padding: 0 14px;
   }
 
-  /* 只隱藏頁尾的「複製報表」按鈕，保留側欄的「儲存」按鈕 */
   #copy-btn {
     display: none;
   }
